@@ -1,18 +1,16 @@
 build:
 		docker build -t imap2hangouts .
 
-auth:
-		docker rm auth
-		docker run --name auth -it imap2hangouts /usr/src/app/auth_hangouts.js
-		docker cp auth:/usr/src/app/node_modules/hangupsjs/cookies.json .
-		docker cp auth:/usr/src/app/node_modules/hangupsjs/refreshtoken.txt .
-		docker rm auth
-
 run:
-		docker run imap2hangouts
+		docker rm imap2hangouts || true
+		docker run -d --name imap2hangouts --volume=`pwd`/data:/data imap2hangouts
 
-shell:
-		docker run -it imap2hangouts bash
+stop:
+		docker kill imap2hangouts || true
+		docker rm imap2hangouts || true
+
+logs:
+		docker logs imap2hangouts
 
 clean:
 		docker ps -a | grep -v "CONTAINER" | awk '{print $$1}' | xargs docker rm

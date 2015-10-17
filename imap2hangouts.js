@@ -12,7 +12,7 @@ function log(msg) {
 var Inbox = require('inbox');
 var MailParser = require('mailparser').MailParser;
 var fs = require('fs');
-var config = require('./config.js');
+var config = require('/data/config.js');
 
 var retry = 0; // 連続retryカウンタ
 var t_retry = 0; // 1時間以内retryカウンタ
@@ -157,7 +157,7 @@ var Hangup = require('hangupsjs');
 
 var creds = function() {
   return {
-    auth : function() { return config.auth }
+    auth : function() { return config.auth; }
   };
 };
 
@@ -197,7 +197,10 @@ function hangout_connect() {
   };
 
   hangout_running = true;
-  var hangup = new Hangup();
+  var hangup = new Hangup({ 
+      cookiespath : "/data/cookies.json",
+      rtokenpath : "/data/refreshtoken.txt"
+  });
   //hangup.loglevel('debug');
 
   var post_messages = function() {

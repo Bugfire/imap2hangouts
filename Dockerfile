@@ -9,6 +9,8 @@ RUN npm install
 COPY iconv-lite_to_jconv.patch /usr/src/app/
 RUN patch -p0 < iconv-lite_to_jconv.patch
 
-COPY auth_hangouts.js imap2hangouts.js config.js run.sh /usr/src/app/
+COPY imap2hangouts.js run.sh /usr/src/app/
+
+VOLUME ["/data"]
 
 CMD [ "./run.sh" ]

@@ -1,0 +1,4 @@
+data/config.js
+data/cookies.json
+data/refreshtoken.txt
+node_modules
