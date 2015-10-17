@@ -1,0 +1,20 @@
+--- ./node_modules/mailparser/node_modules/encoding/lib/encoding.js.orig	2015-10-16 01:08:50.316692420 +0900
++++ ./node_modules/mailparser/node_modules/encoding/lib/encoding.js	2015-10-16 01:42:40.901423214 +0900
+@@ -1,6 +1,6 @@
+ 'use strict';
+ 
+-var iconvLite = require('iconv-lite');
++var iconvLite = require('jconv');
+ var Iconv;
+ 
+ try {
+--- ./node_modules/inbox/node_modules/mimelib/node_modules/encoding/lib/encoding.js.orig	2015-10-16 01:41:43.651572872 +0900
++++ ./node_modules/inbox/node_modules/mimelib/node_modules/encoding/lib/encoding.js	2015-10-16 01:42:54.001388952 +0900
+@@ -1,6 +1,6 @@
+ 'use strict';
+ 
+-var iconvLite = require('iconv-lite');
++var iconvLite = require('jconv');
+ var Iconv;
+ 
+ try {

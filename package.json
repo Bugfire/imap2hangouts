@@ -1,0 +1,22 @@
+{
+  "name": "imap2hangouts",
+  "version": "0.0.1",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Bugfire/imap2hangouts.git"
+  },
+  "main": "imap2hangouts.js",
+  "engines": {
+    "node": ">= 0.12.7"
+  },
+  "scripts": {
+    "test": "nodeunit imap2hangouts.js"
+  },
+  "dependencies": {
+    "forever": "^0.15.1",
+    "hangupsjs": "^1.1.0",
+    "inbox": "^1.1.59",
+    "jconv": "^0.1.5",
+    "mailparser": "^0.5.2"
+  }
+}
