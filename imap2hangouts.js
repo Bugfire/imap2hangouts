@@ -118,6 +118,8 @@ function imap_connect() {
     log('message\n' +
         'name: ' + mail.from[0].name + ' ' + mail.from[0].address + '\n' +
         'subject: ' + mail.subject);
+    if (false && config.debug)
+        log('body: ' + mail.text);
 
     config.mail_filter(mail.from[0].address, mail.subject, mail.text,
         function(subject, body) {
