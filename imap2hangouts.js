@@ -165,12 +165,12 @@ var hangout_queue = [];
 var hangout_running = false;
 
 function send_hangouts(title, message, imageFilename) {
-  if (false) {
+  if (config.debug === true) {
     log("DEBUG:");
     log("title:" + title);
     log("message:" + message);
     log("image:" + imageFilename);
-    return;
+    //return;
   }
 
   var bld = new Hangup.MessageBuilder()
@@ -201,7 +201,9 @@ function hangout_connect() {
       cookiespath : "/data/cookies.json",
       rtokenpath : "/data/refreshtoken.txt"
   });
-  //hangup.loglevel('debug');
+  if (config.debug === true) {
+      hangup.loglevel('debug');
+  }
 
   var post_messages = function() {
     var cur = hangout_queue.shift();
