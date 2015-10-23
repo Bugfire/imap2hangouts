@@ -1,16 +1,18 @@
+PKG_NAME=imap2hangouts
+
 build:
-		docker build -t imap2hangouts .
+		docker build -t ${PKG_NAME} .
 
 run:
-		docker rm imap2hangouts || true
-		docker run -d --name imap2hangouts --volume=`pwd`/data:/data imap2hangouts
+		docker rm ${PKG_NAME} || true
+		docker run -d --name ${PKG_NAME} --volume=`pwd`/data:/data ${PKG_NAME}
 
 stop:
-		docker kill imap2hangouts || true
-		docker rm imap2hangouts || true
+		docker kill ${PKG_NAME} || true
+		docker rm ${PKG_NAME} || true
 
 logs:
-		docker logs imap2hangouts
+		docker logs ${PKG_NAME}
 
 clean:
 		docker ps -a | grep -v "CONTAINER" | awk '{print $$1}' | xargs docker rm
