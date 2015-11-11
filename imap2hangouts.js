@@ -132,6 +132,9 @@ function imap_connect() {
                 );
             } else {
                 log('IGNORED: ' + mail.uid);// + JSON.stringify(mail));
+                if (file != null) {
+                    fs.unlinkSync(file);
+                }
                 callback(null);
             }
         }
@@ -195,7 +198,7 @@ function hangout_connect() {
     hangout_running = false;
     setTimeout(function() {
       hangout_connect();
-    }, 3000);
+    }, 60000);
   };
 
   hangout_running = true;
