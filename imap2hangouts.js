@@ -14,9 +14,11 @@ var MailParser = require('mailparser').MailParser;
 var fs = require('fs');
 var config = require('/data/config.js');
 
-var retry = 0; // 連続retryカウンタ
-var t_retry = 0; // 1時間以内retryカウンタ
-var cnt_connect = 0; // コネクト回数
+var m = {
+    retry : 0, // 連続retryカウンタ
+    t_retry : 0, // 1時間以内retryカウンタ
+    cnt_connect : 0, // コネクト回数
+};
 
 function imap_connect() {
   var imap = Inbox.createConnection(
@@ -27,28 +29,28 @@ function imap_connect() {
   );
 
   imap.on('connect', function() {
-    log('imap connected');
-    cnt_connect++;
-    retry = 0;
+    log('imap: connected');
+    m.cnt_connect++;
+    m.retry = 0;
     (function (t) {
       setTimeout(function() {
-        // 1時間次のコネクトしなければt_retryをリセット
-        if (t == cnt_connect) {
-          log('imap connect counter resetted');
-          t_retry = 0;
+        // 1時間次のコネクトしなければm.t_retryをリセット
+        if (t == m.cnt_connect) {
+          log('imap: connect counter resetted');
+          m.t_retry = 0;
         }
       }, 3600 * 1000);
-    })(cnt_connect);
+    })(m.cnt_connect);
     imap.openMailbox('INBOX', { readOnly : false }, function(error) {
       if (error) {
-        log('imap openMailbox error: ' + error);
+        log('imap: openMailbox error: ' + error);
         imap.close();
         return;
       }
       imap.search({ unseen : true }, true, function(error, result) {
-        log('imap unseen: ' + JSON.stringify(result));
+        log('imap: unseen: ' + JSON.stringify(result));
         if (error) {
-          log('imap openMailbox error: ' + error);
+          log('imap: openMailbox error: ' + error);
           imap.close();
           return;
         }
@@ -67,25 +69,25 @@ function imap_connect() {
   });
 
   imap.on('close', function() {
-    log('imap disconnected');
+    log('imap: disconnected');
     var wait;
-    if (retry == 0 && t_retry < 10) {
+    if (m.retry == 0 && m.t_retry < 10) {
       wait = 100;
-    } else if (retry < 10 && t_retry < 20) {
+    } else if (m.retry < 10 && m.t_retry < 20) {
       wait = 5 * 1000;
     } else {
       wait = 120 * 1000;
     }
     setTimeout(function() {
-      log('imap try reconnect');
-      retry++;
-      t_retry++;
+      log('imap: try reconnect');
+      m.retry++;
+      m.t_retry++;
       imap_connect();
     }, wait);
   });
 
   imap.on('error', function(message) {
-    log('imap error\n' + message);
+    log('imap: error\n' + message);
   });
 
   var fetch_mail = function(uid, callback) {
@@ -108,14 +110,14 @@ function imap_connect() {
       }
     })
     stream.on('error', function() {
-      log('imap stream error: ' + uid);
+      log('imap: stream error: ' + uid);
       callback({ message : 'stream error' });
     });
     stream.pipe(mailParser)
   }
 
   var check_mail = function(mail, file, callback) {
-    log('message\n' +
+    log('imap: check_mail: message\n' +
         'name: ' + mail.from[0].name + ' ' + mail.from[0].address + '\n' +
         'subject: ' + mail.subject);
     if (false && config.debug)
@@ -131,7 +133,7 @@ function imap_connect() {
                     }
                 );
             } else {
-                log('IGNORED: ' + mail.uid);// + JSON.stringify(mail));
+                log('imap: IGNORED: ' + mail.uid);// + JSON.stringify(mail));
                 if (file != null) {
                     fs.unlinkSync(file);
                 }
@@ -142,15 +144,15 @@ function imap_connect() {
   };
 
   imap.on('new', function(message) {
-    log('imap new:');
+    log('imap: new:');
     fetch_mail(message.UID, function(error) {});
   });
 
   imap.on('error', function(message) {
-    log('imap error: ' + message);
+    log('imap: error: ' + message);
   });
 
-  log('imap connect');
+  log('imap: connect');
   imap.connect();
 };
 
@@ -166,8 +168,10 @@ var creds = function() {
   };
 };
 
-var hangout_queue = [];
-var hangout_running = false;
+var h = {
+    queue : [],
+    running : false,
+};
 
 function send_hangouts(title, message, imageFilename) {
   if (config.debug === true) {
@@ -181,9 +185,9 @@ function send_hangouts(title, message, imageFilename) {
   var bld = new Hangup.MessageBuilder()
   var segments = bld.bold(title + '\n').text(message).toSegments()
 
-  hangout_queue.push({ title : title, message : message, imageFilename : imageFilename, segments : segments });
+  h.queue.push({ title : title, message : message, imageFilename : imageFilename, segments : segments });
 
-  if (hangout_running == false)
+  if (h.running == false)
     hangout_connect();
 }
 
@@ -191,17 +195,18 @@ function send_hangouts(title, message, imageFilename) {
 //updatewatermark(conversation_id, timestamp);
 
 function hangout_connect() {
-  if (hangout_running == true)
+  if (h.running == true)
     return;
 
   var retry_hangout_connect = function() {
-    hangout_running = false;
+    log("hangup: reconnecting...");
+    h.running = false;
     setTimeout(function() {
       hangout_connect();
     }, 60000);
   };
 
-  hangout_running = true;
+  h.running = true;
   var hangup = new Hangup({ 
       cookiespath : "/data/cookies.json",
       rtokenpath : "/data/refreshtoken.txt"
@@ -211,12 +216,12 @@ function hangout_connect() {
   }
 
   var post_messages = function() {
-    var cur = hangout_queue.shift();
+    var cur = h.queue.shift();
     var t;
     if (typeof cur.imageFilename !== 'undefined' && cur.imageFilename != null) {
       t = hangup.uploadimage(cur.imageFilename);
       t = t.then(function(i) {
-        log('hangup 1:' + i + '/' + cur.message);
+        log('hangup: 1:' + i + '/' + cur.message);
         fs.unlinkSync(cur.imageFilename);
         cur.imageFilename = null;
         cur.image_id = i;
@@ -228,28 +233,33 @@ function hangout_connect() {
       t = hangup.sendchatmessage(config.conv_id, cur.segments);
     }
     t = t.then(function() {
-      if (hangout_queue.length == 0) {
-        log('hangup disconnect');
-        hangout_running = false;
+      if (h.queue.length == 0) {
+        log('hangup: disconnect');
+        h.running = false;
         return hangup.disconnect();
       } else {
         post_messages();
       }
     });
     t.catch(function() {
-      log('hangup error');
+      log('hangup: error');
       retry_hangout_connect();
       return hangup.disconnect();
     });
   };
 
   hangup.on('chat_message', function(ev) {
-    return log('chat_message: ' + ev);
+    return log('hangup: chat_message: ' + ev);
   });
 
   hangup.on('connect_failed', retry_hangout_connect);
 
   hangup.connect(creds)
-        .then(function() { post_messages(); })
-        .catch(function() { retry_hangout_connect(); });
+        .then(function() {
+            post_messages();
+        })
+        .catch(function() {
+            log('hangup: error');
+            retry_hangout_connect();
+        });
 };
