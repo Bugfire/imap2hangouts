@@ -14,7 +14,7 @@
   },
   "dependencies": {
     "forever": "^0.15.1",
-    "hangupsjs": "^1.1.0",
+    "hangupsjs": "^1.3.0",
     "inbox": "^1.1.59",
     "iconv": "^2.1.11",
     "mailparser": "^0.5.2"
